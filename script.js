@@ -108,12 +108,26 @@ class ShiftScheduler {
         
         this.displaySchedule();
         this.displayStatistics();
+        
+        // Show that a new solution was generated
+        this.showSolutionGenerated();
     }
     
     addRandomness() {
-        // Shuffle employee arrays to create different solutions
+        // Add multiple sources of randomness for truly different solutions
+        
+        // 1. Shuffle employee arrays
         this.employees.dept1 = this.shuffleArray([...this.employees.dept1]);
         this.employees.dept2 = this.shuffleArray([...this.employees.dept2]);
+        
+        // 2. Add random seed based on current time
+        this.randomSeed = Date.now() + Math.random() * 1000;
+        
+        // 3. Randomly vary the assignment order
+        this.assignmentOrder = this.shuffleArray([1, 2, 3, 4, 5, 6]);
+        
+        // 4. Add random offset to scoring algorithm
+        this.randomOffset = Math.random() * 100;
     }
     
     shuffleArray(array) {
@@ -153,8 +167,10 @@ class ShiftScheduler {
             assignedEmployees.add(dept2Employee);
         });
         
-        // Then assign individual shifts (1, 2, 4, 5) from remaining people
-        [1, 2, 4, 5].forEach(shiftId => {
+        // Then assign individual shifts using random order for variety
+        const individualShifts = [1, 2, 4, 5];
+        const shuffledIndividualShifts = this.shuffleArray(individualShifts);
+        shuffledIndividualShifts.forEach(shiftId => {
             const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
             const availableEmployees = allEmployees.filter(emp => 
                 !assignedEmployees.has(emp) && // Not already assigned today
@@ -363,7 +379,65 @@ class ShiftScheduler {
         const shiftSpecificCount = this.shiftCounts[employee].shifts[shiftId];
         
         // Weight total shifts more heavily, but also consider shift-specific balance
-        return totalShifts * 10 + shiftSpecificCount * 5;
+        let baseScore = totalShifts * 10 + shiftSpecificCount * 5;
+        
+        // Add randomness to break ties and create variety
+        const randomFactor = Math.random() * 2; // 0-2 random factor
+        const employeeHash = this.hashString(employee + shiftId + this.randomSeed);
+        const hashFactor = (employeeHash % 100) / 100; // 0-1 based on hash
+        
+        return baseScore + randomFactor + hashFactor;
+    }
+    
+    hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+    }
+    
+    showSolutionGenerated() {
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = '🎲 Ny løsning generert!';
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
     
     displaySchedule() {
