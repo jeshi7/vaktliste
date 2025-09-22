@@ -140,12 +140,26 @@ class ShiftScheduler {
             return null;
         }
         
+        // Filter out employees who have reached their shift limit
+        const eligibleEmployees = availableEmployees.filter(emp => {
+            const currentCount = this.shiftCounts[emp].shifts[shiftId];
+            // Yvonne can only work shift 5 three times
+            if (emp === 'Yvonne' && shiftId === 5) {
+                return currentCount < 3;
+            }
+            // For other employees, allow up to 5 times per shift (adjust as needed)
+            return currentCount < 5;
+        });
+        
+        // If no eligible employees, use all available (emergency fallback)
+        const finalEmployees = eligibleEmployees.length > 0 ? eligibleEmployees : availableEmployees;
+        
         // Find employee with least total shifts and least shifts of this type
-        let bestEmployee = availableEmployees[0];
+        let bestEmployee = finalEmployees[0];
         let bestScore = this.calculateEmployeeScore(bestEmployee, shiftId);
         
-        for (let i = 1; i < availableEmployees.length; i++) {
-            const employee = availableEmployees[i];
+        for (let i = 1; i < finalEmployees.length; i++) {
+            const employee = finalEmployees[i];
             const score = this.calculateEmployeeScore(employee, shiftId);
             if (score < bestScore) {
                 bestEmployee = employee;
