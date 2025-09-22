@@ -1,0 +1,2 @@
+Deployment trigger - v2.1 - $(date)
+This file forces Vercel to rebuild the entire project
