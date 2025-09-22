@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaktliste - Shift Schedule</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Vaktliste - Shift Schedule</h1>
+            <p>8 ansatte fordelt på 2 avdelinger</p>
+        </header>
+
+        <div class="controls">
+            <button id="generateSchedule" class="btn-primary">Generer Vaktliste</button>
+            <button id="nextMonth" class="btn-secondary">Neste Måned</button>
+            <button id="prevMonth" class="btn-secondary">Forrige Måned</button>
+            <div class="month-display">
+                <span id="currentMonth"></span>
+            </div>
+        </div>
+
+        <div class="shifts-info">
+            <h3>Vakttyper:</h3>
+            <div class="shift-types">
+                <div class="shift-type">
+                    <span class="shift-time">07:00</span>
+                    <span class="shift-desc">Vakt 1 (1 pers, bytter annenhver dag med Vakt 2)</span>
+                </div>
+                <div class="shift-type">
+                    <span class="shift-time">07:15</span>
+                    <span class="shift-desc">Vakt 2 (1 pers, bytter annenhver dag med Vakt 1)</span>
+                </div>
+                <div class="shift-type">
+                    <span class="shift-time">08:00</span>
+                    <span class="shift-desc">Vakt 3 (2 pers, en på hver avdeling)</span>
+                </div>
+                <div class="shift-type">
+                    <span class="shift-time">08:30</span>
+                    <span class="shift-desc">Vakt 4 (1 pers, bytter annenhver dag med Vakt 5)</span>
+                </div>
+                <div class="shift-type">
+                    <span class="shift-time">09:00</span>
+                    <span class="shift-desc">Vakt 5 (1 pers, bytter annenhver dag med Vakt 4)</span>
+                </div>
+                <div class="shift-type">
+                    <span class="shift-time">09:30</span>
+                    <span class="shift-desc">Vakt 6 (2 pers, en på hver avdeling)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="departments">
+            <div class="department">
+                <h3>Avdeling 1</h3>
+                <div class="employees">
+                    <div class="employee">Yvonne <span class="special">(kan rulleres på vakt 2,3,4,5)</span></div>
+                    <div class="employee">Luma</div>
+                    <div class="employee">Lissa</div>
+                    <div class="employee">Michelle</div>
+                </div>
+            </div>
+            <div class="department">
+                <h3>Avdeling 2</h3>
+                <div class="employees">
+                    <div class="employee">Camilla</div>
+                    <div class="employee">Grete</div>
+                    <div class="employee">Ida</div>
+                    <div class="employee">Josephine</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="schedule-container">
+            <div id="scheduleTable" class="schedule-table">
+                <p class="placeholder">Klikk "Generer Vaktliste" for å se skjemaet</p>
+            </div>
+        </div>
+
+        <div class="statistics">
+            <h3>Statistikk</h3>
+            <div id="statistics" class="stats-container">
+                <p>Generer en vaktliste for å se statistikk</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

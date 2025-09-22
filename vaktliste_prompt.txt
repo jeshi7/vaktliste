@@ -1,0 +1,28 @@
+jeg vil at du skal lage en vaktliste for 8 ansatte fordelt på 2 avdelinger. 4 pers. pr. avdeling.
+
+vakt 1 - 07:00 (1 Pers. må bytte vakt annenhver dag med vakt 2)
+vakt 2 - 07:15 (1 Pers. må bytte vakt annenhver dag med vakt 1)
+vakt 3 - 08:00 (2 Pers. (en på hver avdeling)
+vakt 4 - 08:30 (1 Pers. må bytte vakt annenhver dag med vakt 5)
+vakt 5 - 09:00 (1 Pers. må bytte vakt annenhver dag med vakt 4)
+vakt 6 - 09:30 (2 Pers. (en på hver avdeling)
+
+1 (yvonne) av de 8 ansatte skal kunne rulleres på 2, 3, 4 og 5 vaktene
+
+fordelingen av vaktene skal være rettferdige der alle jobber likt på forskjellige vakter i måneden
+
+her er navnene til de på avd 1 og avd 2
+
+Avd 1:
+yvonne
+luma
+lissa
+michelle
+
+avd 2:
+camilla
+grete
+ida
+josephine
+mandag til fredag
+ChatGPT said:
