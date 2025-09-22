@@ -91,16 +91,22 @@ class ShiftScheduler {
         
         // First assign department-specific shifts (3 and 6) to ensure we have people from each dept
         [3, 6].forEach(shiftId => {
-            const availableDept1 = this.employees.dept1.filter(emp => !assignedEmployees.has(emp));
-            const availableDept2 = this.employees.dept2.filter(emp => !assignedEmployees.has(emp));
+            const availableDept1 = this.employees.dept1.filter(emp => 
+                !assignedEmployees.has(emp) && 
+                (emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)) // Yvonne restriction
+            );
+            const availableDept2 = this.employees.dept2.filter(emp => 
+                !assignedEmployees.has(emp) && 
+                (emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)) // Yvonne restriction
+            );
             
-            // If no one available in a department, use anyone from that department
+            // If no one available in a department, use anyone from that department (respecting Yvonne's restrictions)
             const dept1Employee = availableDept1.length > 0 ? 
                 this.selectEmployee(availableDept1, shiftId) : 
-                this.selectEmployee(this.employees.dept1, shiftId);
+                this.selectEmployee(this.employees.dept1.filter(emp => emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)), shiftId);
             const dept2Employee = availableDept2.length > 0 ? 
                 this.selectEmployee(availableDept2, shiftId) : 
-                this.selectEmployee(this.employees.dept2, shiftId);
+                this.selectEmployee(this.employees.dept2.filter(emp => emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)), shiftId);
             
             daySchedule[shiftId] = { dept1: dept1Employee, dept2: dept2Employee };
             assignedEmployees.add(dept1Employee);
