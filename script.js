@@ -154,12 +154,19 @@ class ShiftScheduler {
         // If no eligible employees, use all available (emergency fallback)
         const finalEmployees = eligibleEmployees.length > 0 ? eligibleEmployees : availableEmployees;
         
+        // Prioritize employees who haven't worked any shifts yet (except Yvonne)
+        const employeesWithNoShifts = finalEmployees.filter(emp => 
+            emp !== 'Yvonne' && this.shiftCounts[emp].total === 0
+        );
+        
+        const candidatesToUse = employeesWithNoShifts.length > 0 ? employeesWithNoShifts : finalEmployees;
+        
         // Find employee with least total shifts and least shifts of this type
-        let bestEmployee = finalEmployees[0];
+        let bestEmployee = candidatesToUse[0];
         let bestScore = this.calculateEmployeeScore(bestEmployee, shiftId);
         
-        for (let i = 1; i < finalEmployees.length; i++) {
-            const employee = finalEmployees[i];
+        for (let i = 1; i < candidatesToUse.length; i++) {
+            const employee = candidatesToUse[i];
             const score = this.calculateEmployeeScore(employee, shiftId);
             if (score < bestScore) {
                 bestEmployee = employee;
