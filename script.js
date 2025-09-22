@@ -98,8 +98,13 @@ class ShiftScheduler {
                 (emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)) // Yvonne restriction
             );
             const selectedEmployee = this.selectEmployee(availableEmployees, shiftId);
-            daySchedule[shiftId] = selectedEmployee;
-            assignedEmployees.add(selectedEmployee);
+            if (selectedEmployee) {
+                daySchedule[shiftId] = selectedEmployee;
+                assignedEmployees.add(selectedEmployee);
+            } else {
+                console.error(`Could not assign shift ${shiftId} - no available employees`);
+                daySchedule[shiftId] = 'IKKE TILDELT';
+            }
         });
         
         // Shifts 3 and 6: One person from each department
@@ -110,15 +115,29 @@ class ShiftScheduler {
             const dept1Employee = this.selectEmployee(availableDept1, shiftId);
             const dept2Employee = this.selectEmployee(availableDept2, shiftId);
             
-            daySchedule[shiftId] = { dept1: dept1Employee, dept2: dept2Employee };
-            assignedEmployees.add(dept1Employee);
-            assignedEmployees.add(dept2Employee);
+            if (dept1Employee && dept2Employee) {
+                daySchedule[shiftId] = { dept1: dept1Employee, dept2: dept2Employee };
+                assignedEmployees.add(dept1Employee);
+                assignedEmployees.add(dept2Employee);
+            } else {
+                console.error(`Could not assign shift ${shiftId} - missing department employees`);
+                daySchedule[shiftId] = { 
+                    dept1: dept1Employee || 'IKKE TILDELT', 
+                    dept2: dept2Employee || 'IKKE TILDELT' 
+                };
+            }
         });
         
         return daySchedule;
     }
     
     selectEmployee(availableEmployees, shiftId) {
+        // Check if there are available employees
+        if (availableEmployees.length === 0) {
+            console.error(`No available employees for shift ${shiftId}`);
+            return null;
+        }
+        
         // Find employee with least total shifts and least shifts of this type
         let bestEmployee = availableEmployees[0];
         let bestScore = this.calculateEmployeeScore(bestEmployee, shiftId);
