@@ -55,7 +55,12 @@ class ShiftScheduler {
             prev: !!prevBtn
         });
         
-        if (generateBtn) generateBtn.addEventListener('click', () => this.generateSchedule());
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => {
+                console.log('Generate button clicked!');
+                this.generateSchedule();
+            });
+        }
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveSchedule());
         if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadJPEG());
         if (nextBtn) nextBtn.addEventListener('click', () => this.changeMonth(1));
@@ -354,16 +359,25 @@ class ShiftScheduler {
         
         const candidatesToUse = employeesWithNoShifts.length > 0 ? employeesWithNoShifts : finalEmployees;
         
-        // Find employee with least total shifts and least shifts of this type
-        let bestEmployee = candidatesToUse[0];
-        let bestScore = this.calculateEmployeeScore(bestEmployee, shiftId);
+        // Add more randomness - sometimes pick randomly instead of always the "best"
+        const shouldPickRandomly = Math.random() < 0.3; // 30% chance to pick randomly
         
-        for (let i = 1; i < candidatesToUse.length; i++) {
-            const employee = candidatesToUse[i];
-            const score = this.calculateEmployeeScore(employee, shiftId);
-            if (score < bestScore) {
-                bestEmployee = employee;
-                bestScore = score;
+        if (shouldPickRandomly && candidatesToUse.length > 1) {
+            // Pick a random employee from the candidates
+            const randomIndex = Math.floor(Math.random() * candidatesToUse.length);
+            bestEmployee = candidatesToUse[randomIndex];
+        } else {
+            // Find employee with least total shifts and least shifts of this type
+            bestEmployee = candidatesToUse[0];
+            let bestScore = this.calculateEmployeeScore(bestEmployee, shiftId);
+            
+            for (let i = 1; i < candidatesToUse.length; i++) {
+                const employee = candidatesToUse[i];
+                const score = this.calculateEmployeeScore(employee, shiftId);
+                if (score < bestScore) {
+                    bestEmployee = employee;
+                    bestScore = score;
+                }
             }
         }
         
