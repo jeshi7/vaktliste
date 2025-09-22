@@ -89,43 +89,39 @@ class ShiftScheduler {
         const daySchedule = {};
         const assignedEmployees = new Set(); // Track who's already assigned today
         
-        // ALWAYS assign ALL 6 shifts every working day
-        // Shifts 1, 2, 4, 5: Single person from any department
+        // First assign department-specific shifts (3 and 6) to ensure we have people from each dept
+        [3, 6].forEach(shiftId => {
+            const availableDept1 = this.employees.dept1.filter(emp => !assignedEmployees.has(emp));
+            const availableDept2 = this.employees.dept2.filter(emp => !assignedEmployees.has(emp));
+            
+            // If no one available in a department, use anyone from that department
+            const dept1Employee = availableDept1.length > 0 ? 
+                this.selectEmployee(availableDept1, shiftId) : 
+                this.selectEmployee(this.employees.dept1, shiftId);
+            const dept2Employee = availableDept2.length > 0 ? 
+                this.selectEmployee(availableDept2, shiftId) : 
+                this.selectEmployee(this.employees.dept2, shiftId);
+            
+            daySchedule[shiftId] = { dept1: dept1Employee, dept2: dept2Employee };
+            assignedEmployees.add(dept1Employee);
+            assignedEmployees.add(dept2Employee);
+        });
+        
+        // Then assign individual shifts (1, 2, 4, 5) from remaining people
         [1, 2, 4, 5].forEach(shiftId => {
             const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
             const availableEmployees = allEmployees.filter(emp => 
                 !assignedEmployees.has(emp) && // Not already assigned today
                 (emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)) // Yvonne restriction
             );
-            const selectedEmployee = this.selectEmployee(availableEmployees, shiftId);
-            if (selectedEmployee) {
-                daySchedule[shiftId] = selectedEmployee;
-                assignedEmployees.add(selectedEmployee);
-            } else {
-                console.error(`Could not assign shift ${shiftId} - no available employees`);
-                daySchedule[shiftId] = 'IKKE TILDELT';
-            }
-        });
-        
-        // Shifts 3 and 6: One person from each department
-        [3, 6].forEach(shiftId => {
-            const availableDept1 = this.employees.dept1.filter(emp => !assignedEmployees.has(emp));
-            const availableDept2 = this.employees.dept2.filter(emp => !assignedEmployees.has(emp));
             
-            const dept1Employee = this.selectEmployee(availableDept1, shiftId);
-            const dept2Employee = this.selectEmployee(availableDept2, shiftId);
+            // If no one available, use anyone (except Yvonne for restricted shifts)
+            const finalAvailableEmployees = availableEmployees.length > 0 ? availableEmployees :
+                allEmployees.filter(emp => emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId));
             
-            if (dept1Employee && dept2Employee) {
-                daySchedule[shiftId] = { dept1: dept1Employee, dept2: dept2Employee };
-                assignedEmployees.add(dept1Employee);
-                assignedEmployees.add(dept2Employee);
-            } else {
-                console.error(`Could not assign shift ${shiftId} - missing department employees`);
-                daySchedule[shiftId] = { 
-                    dept1: dept1Employee || 'IKKE TILDELT', 
-                    dept2: dept2Employee || 'IKKE TILDELT' 
-                };
-            }
+            const selectedEmployee = this.selectEmployee(finalAvailableEmployees, shiftId);
+            daySchedule[shiftId] = selectedEmployee;
+            assignedEmployees.add(selectedEmployee);
         });
         
         return daySchedule;
