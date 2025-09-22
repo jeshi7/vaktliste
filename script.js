@@ -476,14 +476,24 @@ class ShiftScheduler {
         }
         
         try {
-            // Import html2canvas dynamically
-            const html2canvas = (await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')).default;
+            // Load html2canvas from CDN
+            if (typeof html2canvas === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                document.head.appendChild(script);
+                
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                });
+            }
             
             const scheduleTable = document.querySelector('.schedule-table');
             const canvas = await html2canvas(scheduleTable, {
                 backgroundColor: '#ffffff',
                 scale: 2,
-                useCORS: true
+                useCORS: true,
+                allowTaint: true
             });
             
             // Convert to JPEG and download
