@@ -164,9 +164,12 @@ class ShiftScheduler {
         const month = this.currentDate.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        // Check who hasn't worked any shifts yet
+        // Special handling for Luma - she should work every day and have at least 2 shift 5s
+        this.ensureLumaWorksEveryDay(daysInMonth, year, month);
+        
+        // Check who hasn't worked any shifts yet (excluding Luma who is handled above)
         const employeesWithNoShifts = allEmployees.filter(emp => 
-            emp !== 'Yvonne' && this.shiftCounts[emp].total === 0
+            emp !== 'Yvonne' && emp !== 'Luma' && this.shiftCounts[emp].total === 0
         );
         
         if (employeesWithNoShifts.length > 0) {
@@ -199,6 +202,93 @@ class ShiftScheduler {
                     }
                     
                     if (employeesWithNoShifts.length === 0) break;
+                }
+            }
+        }
+    }
+    
+    ensureLumaWorksEveryDay(daysInMonth, year, month) {
+        let lumaShift5Count = 0;
+        const targetShift5Count = 2; // Luma should have at least 2 shift 5s
+        
+        // First, ensure Luma works every working day
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dayOfWeek = date.getDay();
+            
+            // Skip weekends
+            if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+            
+            const daySchedule = this.schedule[day];
+            if (!daySchedule || daySchedule.isWeekend) continue;
+            
+            // Check if Luma is already assigned to this day
+            let lumaAssigned = false;
+            for (let shiftId of [1, 2, 3, 4, 5, 6]) {
+                if (typeof daySchedule[shiftId] === 'string' && daySchedule[shiftId] === 'Luma') {
+                    lumaAssigned = true;
+                    break;
+                } else if (typeof daySchedule[shiftId] === 'object' && 
+                          (daySchedule[shiftId].dept1 === 'Luma' || daySchedule[shiftId].dept2 === 'Luma')) {
+                    lumaAssigned = true;
+                    break;
+                }
+            }
+            
+            // If Luma is not assigned, assign her to shift 5 (and count it)
+            if (!lumaAssigned) {
+                daySchedule[5] = 'Luma';
+                this.shiftCounts['Luma'].total++;
+                this.shiftCounts['Luma'].shifts[5]++;
+                lumaShift5Count++;
+            } else {
+                // Count existing shift 5s
+                if (daySchedule[5] === 'Luma') {
+                    lumaShift5Count++;
+                }
+            }
+        }
+        
+        // If Luma doesn't have enough shift 5s, reassign some of her other shifts to shift 5
+        if (lumaShift5Count < targetShift5Count) {
+            const needed = targetShift5Count - lumaShift5Count;
+            let reassigned = 0;
+            
+            for (let day = 1; day <= daysInMonth && reassigned < needed; day++) {
+                const date = new Date(year, month, day);
+                const dayOfWeek = date.getDay();
+                
+                if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+                
+                const daySchedule = this.schedule[day];
+                if (!daySchedule || daySchedule.isWeekend) continue;
+                
+                // If Luma is on a different shift, move her to shift 5
+                for (let shiftId of [1, 2, 3, 4, 6]) {
+                    if (typeof daySchedule[shiftId] === 'string' && daySchedule[shiftId] === 'Luma') {
+                        // Move Luma from this shift to shift 5
+                        daySchedule[shiftId] = this.selectEmployee(
+                            this.employees.dept1.filter(emp => emp !== 'Luma'), 
+                            shiftId
+                        );
+                        daySchedule[5] = 'Luma';
+                        this.shiftCounts['Luma'].shifts[shiftId]--;
+                        this.shiftCounts['Luma'].shifts[5]++;
+                        reassigned++;
+                        break;
+                    } else if (typeof daySchedule[shiftId] === 'object' && 
+                              daySchedule[shiftId].dept1 === 'Luma') {
+                        // Move Luma from dept1 to shift 5
+                        daySchedule[shiftId].dept1 = this.selectEmployee(
+                            this.employees.dept1.filter(emp => emp !== 'Luma'), 
+                            shiftId
+                        );
+                        daySchedule[5] = 'Luma';
+                        this.shiftCounts['Luma'].shifts[shiftId]--;
+                        this.shiftCounts['Luma'].shifts[5]++;
+                        reassigned++;
+                        break;
+                    }
                 }
             }
         }
