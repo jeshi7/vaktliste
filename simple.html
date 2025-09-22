@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 VAKTLISTE v2.1 - SIMPLE VERSION 🚨</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            color: #333;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-success { background: #FF9800; color: white; }
+        .btn-download { background: #9C27B0; color: white; }
+        .btn-secondary { background: #2196F3; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚨 VAKTLISTE v2.1 - SIMPLE VERSION 🚨</h1>
+            <p>8 ansatte fordelt på 2 avdelinger</p>
+            <p style="color: red; font-weight: bold;">NEW FEATURES: Save, Download, History & Random Solutions!</p>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary">Generer Ny Løsning</button>
+            <button class="btn btn-success">Lagre Løsning</button>
+            <button class="btn btn-download">Last Ned JPEG</button>
+            <button class="btn btn-secondary">Neste Måned</button>
+            <button class="btn btn-secondary">Forrige Måned</button>
+        </div>
+
+        <div class="solutions-history">
+            <h3>Tidligere Løsninger</h3>
+            <p>Generer en løsning for å se historikk</p>
+        </div>
+
+        <div class="shifts-info">
+            <h3>Vakttyper:</h3>
+            <p>07:00 Vakt 1 (1 pers, alltid fylt)</p>
+            <p>07:15 Vakt 2 (1 pers, alltid fylt)</p>
+            <p>08:00 Vakt 3 (2 pers, en på hver avdeling)</p>
+            <p>08:30 Vakt 4 (1 pers, alltid fylt)</p>
+            <p>09:00 Vakt 5 (1 pers, alltid fylt)</p>
+            <p>09:30 Vakt 6 (2 pers, en på hver avdeling)</p>
+        </div>
+
+        <div class="departments">
+            <h3>Avdeling 1</h3>
+            <p>Yvonne (kan rulleres på vakt 2,3,4,5)</p>
+            <p>Luma</p>
+            <p>Lissa</p>
+            <p>Michelle</p>
+
+            <h3>Avdeling 2</h3>
+            <p>Camilla</p>
+            <p>Grete</p>
+            <p>Ida</p>
+            <p>Josephine</p>
+        </div>
+
+        <div class="schedule-container">
+            <h3>Vaktliste</h3>
+            <p>Klikk "Generer Ny Løsning" for å se skjemaet</p>
+        </div>
+
+        <div class="statistics">
+            <h3>Statistikk</h3>
+            <p>Generer en vaktliste for å se statistikk</p>
+        </div>
+    </div>
+</body>
+</html>
