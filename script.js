@@ -221,10 +221,25 @@ class ShiftScheduler {
                 const daySchedule = this.schedule[day];
                 if (!daySchedule || daySchedule.isWeekend) continue;
                 
-                // Try to assign shift 5 to someone who hasn't worked
+                // Try to assign shift 5 to someone who hasn't worked, prioritizing Luma
                 const availableForShift5 = employeesWithNoShifts.filter(emp => 
                     emp !== 'Yvonne' || [2, 3, 4, 5].includes(5)
                 );
+                
+                // If Luma hasn't worked and needs shift 5, prioritize her
+                if (availableForShift5.includes('Luma') && this.shiftCounts['Luma'].shifts[5] < 2) {
+                    const employee = 'Luma';
+                    daySchedule[5] = employee;
+                    this.shiftCounts[employee].total++;
+                    this.shiftCounts[employee].shifts[5]++;
+                    
+                    // Remove from the list
+                    const index = employeesWithNoShifts.indexOf(employee);
+                    if (index > -1) {
+                        employeesWithNoShifts.splice(index, 1);
+                    }
+                    continue;
+                }
                 
                 if (availableForShift5.length > 0) {
                     const employee = availableForShift5[0];
@@ -282,6 +297,36 @@ class ShiftScheduler {
                 // Count existing shift 5s
                 if (daySchedule[5] === 'Luma') {
                     lumaShift5Count++;
+                }
+                // If Luma is assigned to a different shift but needs more shift 5s, move her
+                else if (lumaShift5Count < targetShift5Count) {
+                    // Find what shift Luma is on and move her to shift 5
+                    for (let shiftId of [1, 2, 3, 4, 6]) {
+                        if (typeof daySchedule[shiftId] === 'string' && daySchedule[shiftId] === 'Luma') {
+                            // Move Luma from this shift to shift 5
+                            daySchedule[shiftId] = this.selectEmployee(
+                                this.employees.dept1.filter(emp => emp !== 'Luma'), 
+                                shiftId
+                            );
+                            daySchedule[5] = 'Luma';
+                            this.shiftCounts['Luma'].shifts[shiftId]--;
+                            this.shiftCounts['Luma'].shifts[5]++;
+                            lumaShift5Count++;
+                            break;
+                        } else if (typeof daySchedule[shiftId] === 'object' && 
+                                  daySchedule[shiftId].dept1 === 'Luma') {
+                            // Move Luma from dept1 to shift 5
+                            daySchedule[shiftId].dept1 = this.selectEmployee(
+                                this.employees.dept1.filter(emp => emp !== 'Luma'), 
+                                shiftId
+                            );
+                            daySchedule[5] = 'Luma';
+                            this.shiftCounts['Luma'].shifts[shiftId]--;
+                            this.shiftCounts['Luma'].shifts[5]++;
+                            lumaShift5Count++;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -344,6 +389,10 @@ class ShiftScheduler {
             // Yvonne can only work shift 5 three times
             if (emp === 'Yvonne' && shiftId === 5) {
                 return currentCount < 3;
+            }
+            // Luma should get at least 2 shift 5s, so prioritize her if she has less than 2
+            if (emp === 'Luma' && shiftId === 5) {
+                return currentCount < 2;
             }
             // For other employees, allow up to 5 times per shift (adjust as needed)
             return currentCount < 5;
