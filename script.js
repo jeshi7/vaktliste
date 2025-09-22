@@ -87,34 +87,24 @@ class ShiftScheduler {
     
     assignShiftsForDay(day) {
         const daySchedule = {};
-        const alternatingPairs = [[1, 2], [4, 5]];
         
-        // Handle alternating shifts
+        // Handle alternating shifts (1↔2, 4↔5)
+        const alternatingPairs = [[1, 2], [4, 5]];
         alternatingPairs.forEach(pair => {
             const [shift1, shift2] = pair;
             const isEvenDay = day % 2 === 0;
             const selectedShift = isEvenDay ? shift1 : shift2;
             
-            if (selectedShift === 1 || selectedShift === 2) {
-                // For shifts 1 and 2, pick from any department
-                const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
-                const availableEmployees = allEmployees.filter(emp => 
-                    emp !== 'Yvonne' || [2, 3, 4, 5].includes(selectedShift)
-                );
-                const selectedEmployee = this.selectEmployee(availableEmployees, selectedShift);
-                daySchedule[selectedShift] = selectedEmployee;
-            } else {
-                // For shifts 4 and 5, pick from any department
-                const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
-                const availableEmployees = allEmployees.filter(emp => 
-                    emp !== 'Yvonne' || [2, 3, 4, 5].includes(selectedShift)
-                );
-                const selectedEmployee = this.selectEmployee(availableEmployees, selectedShift);
-                daySchedule[selectedShift] = selectedEmployee;
-            }
+            // For alternating shifts, pick from any department
+            const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
+            const availableEmployees = allEmployees.filter(emp => 
+                emp !== 'Yvonne' || [2, 3, 4, 5].includes(selectedShift)
+            );
+            const selectedEmployee = this.selectEmployee(availableEmployees, selectedShift);
+            daySchedule[selectedShift] = selectedEmployee;
         });
         
-        // Handle department-specific shifts (3 and 6)
+        // Handle department-specific shifts (3 and 6) - ALWAYS assign both
         [3, 6].forEach(shiftId => {
             const dept1Employee = this.selectEmployee(this.employees.dept1, shiftId);
             const dept2Employee = this.selectEmployee(this.employees.dept2, shiftId);
