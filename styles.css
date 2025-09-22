@@ -51,6 +51,9 @@ header p {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: inline-block;
+    min-width: 120px;
+    text-align: center;
 }
 
 .btn-primary {

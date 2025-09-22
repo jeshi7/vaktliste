@@ -39,11 +39,27 @@ class ShiftScheduler {
     }
     
     setupEventListeners() {
-        document.getElementById('generateSchedule').addEventListener('click', () => this.generateSchedule());
-        document.getElementById('saveSchedule').addEventListener('click', () => this.saveSchedule());
-        document.getElementById('downloadJPEG').addEventListener('click', () => this.downloadJPEG());
-        document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
-        document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
+        console.log('Setting up event listeners...');
+        
+        const generateBtn = document.getElementById('generateSchedule');
+        const saveBtn = document.getElementById('saveSchedule');
+        const downloadBtn = document.getElementById('downloadJPEG');
+        const nextBtn = document.getElementById('nextMonth');
+        const prevBtn = document.getElementById('prevMonth');
+        
+        console.log('Buttons found:', {
+            generate: !!generateBtn,
+            save: !!saveBtn,
+            download: !!downloadBtn,
+            next: !!nextBtn,
+            prev: !!prevBtn
+        });
+        
+        if (generateBtn) generateBtn.addEventListener('click', () => this.generateSchedule());
+        if (saveBtn) saveBtn.addEventListener('click', () => this.saveSchedule());
+        if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadJPEG());
+        if (nextBtn) nextBtn.addEventListener('click', () => this.changeMonth(1));
+        if (prevBtn) prevBtn.addEventListener('click', () => this.changeMonth(-1));
     }
     
     changeMonth(direction) {
