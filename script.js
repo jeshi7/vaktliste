@@ -88,23 +88,18 @@ class ShiftScheduler {
     assignShiftsForDay(day) {
         const daySchedule = {};
         
-        // Handle alternating shifts (1↔2, 4↔5)
-        const alternatingPairs = [[1, 2], [4, 5]];
-        alternatingPairs.forEach(pair => {
-            const [shift1, shift2] = pair;
-            const isEvenDay = day % 2 === 0;
-            const selectedShift = isEvenDay ? shift1 : shift2;
-            
-            // For alternating shifts, pick from any department
+        // ALWAYS assign ALL 6 shifts every working day
+        // Shifts 1, 2, 4, 5: Single person from any department
+        [1, 2, 4, 5].forEach(shiftId => {
             const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
             const availableEmployees = allEmployees.filter(emp => 
-                emp !== 'Yvonne' || [2, 3, 4, 5].includes(selectedShift)
+                emp !== 'Yvonne' || [2, 3, 4, 5].includes(shiftId)
             );
-            const selectedEmployee = this.selectEmployee(availableEmployees, selectedShift);
-            daySchedule[selectedShift] = selectedEmployee;
+            const selectedEmployee = this.selectEmployee(availableEmployees, shiftId);
+            daySchedule[shiftId] = selectedEmployee;
         });
         
-        // Handle department-specific shifts (3 and 6) - ALWAYS assign both
+        // Shifts 3 and 6: One person from each department
         [3, 6].forEach(shiftId => {
             const dept1Employee = this.selectEmployee(this.employees.dept1, shiftId);
             const dept2Employee = this.selectEmployee(this.employees.dept2, shiftId);
