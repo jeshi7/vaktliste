@@ -14,11 +14,20 @@
         </header>
 
         <div class="controls">
-            <button id="generateSchedule" class="btn-primary">Generer Vaktliste</button>
+            <button id="generateSchedule" class="btn-primary">Generer Ny Løsning</button>
+            <button id="saveSchedule" class="btn-success">Lagre Løsning</button>
+            <button id="downloadJPEG" class="btn-download">Last Ned JPEG</button>
             <button id="nextMonth" class="btn-secondary">Neste Måned</button>
             <button id="prevMonth" class="btn-secondary">Forrige Måned</button>
             <div class="month-display">
                 <span id="currentMonth"></span>
+            </div>
+        </div>
+
+        <div class="solutions-history">
+            <h3>Tidligere Løsninger</h3>
+            <div id="solutionsList" class="solutions-container">
+                <p class="placeholder">Generer en løsning for å se historikk</p>
             </div>
         </div>
 

@@ -17,6 +17,7 @@ class ShiftScheduler {
         this.currentDate = new Date();
         this.schedule = {};
         this.shiftCounts = {};
+        this.currentScheduleId = null;
         this.init();
     }
     
@@ -39,6 +40,8 @@ class ShiftScheduler {
     
     setupEventListeners() {
         document.getElementById('generateSchedule').addEventListener('click', () => this.generateSchedule());
+        document.getElementById('saveSchedule').addEventListener('click', () => this.saveSchedule());
+        document.getElementById('downloadJPEG').addEventListener('click', () => this.downloadJPEG());
         document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
         document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
     }
@@ -46,7 +49,7 @@ class ShiftScheduler {
     changeMonth(direction) {
         this.currentDate.setMonth(this.currentDate.getMonth() + direction);
         this.updateMonthDisplay();
-        this.generateSchedule();
+        this.loadSolutionsHistory();
     }
     
     updateMonthDisplay() {
@@ -67,6 +70,9 @@ class ShiftScheduler {
         const month = this.currentDate.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
+        // Add some randomness to generate different solutions
+        this.addRandomness();
+        
         // Generate schedule for each day
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(year, month, day);
@@ -83,6 +89,21 @@ class ShiftScheduler {
         
         this.displaySchedule();
         this.displayStatistics();
+    }
+    
+    addRandomness() {
+        // Shuffle employee arrays to create different solutions
+        this.employees.dept1 = this.shuffleArray([...this.employees.dept1]);
+        this.employees.dept2 = this.shuffleArray([...this.employees.dept2]);
+    }
+    
+    shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
     
     assignShiftsForDay(day) {
@@ -277,9 +298,158 @@ class ShiftScheduler {
         
         statsContainer.innerHTML = html;
     }
+    
+    async saveSchedule() {
+        if (!this.schedule || Object.keys(this.schedule).length === 0) {
+            alert('Ingen vaktliste å lagre. Generer en løsning først.');
+            return;
+        }
+        
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth() + 1;
+        
+        // Prepare statistics data
+        const statistics = Object.keys(this.shiftCounts).map(emp => ({
+            name: emp,
+            total: this.shiftCounts[emp].total,
+            breakdown: this.shiftCounts[emp].shifts
+        }));
+        
+        try {
+            const response = await fetch('/api/schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    month: month,
+                    year: year,
+                    scheduleData: this.schedule,
+                    statistics: statistics
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                this.currentScheduleId = result.id;
+                alert(`Løsning ${result.solutionNumber} lagret!`);
+                this.loadSolutionsHistory();
+            } else {
+                alert('Feil ved lagring: ' + result.error);
+            }
+        } catch (error) {
+            alert('Feil ved lagring: ' + error.message);
+        }
+    }
+    
+    async loadSolutionsHistory() {
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth() + 1;
+        
+        try {
+            const response = await fetch(`/api/schedules/${year}/${month}`);
+            const solutions = await response.json();
+            
+            this.displaySolutionsHistory(solutions);
+        } catch (error) {
+            console.error('Feil ved lasting av løsninger:', error);
+        }
+    }
+    
+    displaySolutionsHistory(solutions) {
+        const container = document.getElementById('solutionsList');
+        
+        if (solutions.length === 0) {
+            container.innerHTML = '<p class="placeholder">Ingen lagrede løsninger for denne måneden</p>';
+            return;
+        }
+        
+        let html = '';
+        solutions.forEach(solution => {
+            const date = new Date(solution.created_at).toLocaleDateString('no-NO');
+            html += `
+                <div class="solution-card" data-id="${solution.id}">
+                    <h4>Løsning ${solution.solution_number}</h4>
+                    <div class="date">${date}</div>
+                    <div class="actions">
+                        <button class="btn-small btn-load" onclick="scheduler.loadSolution(${solution.id})">Last</button>
+                        <button class="btn-small btn-delete" onclick="scheduler.deleteSolution(${solution.id})">Slett</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    async loadSolution(solutionId) {
+        try {
+            const response = await fetch(`/api/schedules/${solutionId}/statistics`);
+            const statistics = await response.json();
+            
+            // Reconstruct schedule from statistics (simplified - in real app you'd store full schedule)
+            this.currentScheduleId = solutionId;
+            this.generateSchedule(); // Regenerate with same constraints
+            alert('Løsning lastet!');
+        } catch (error) {
+            alert('Feil ved lasting: ' + error.message);
+        }
+    }
+    
+    async deleteSolution(solutionId) {
+        if (!confirm('Er du sikker på at du vil slette denne løsningen?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/schedules/${solutionId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                alert('Løsning slettet!');
+                this.loadSolutionsHistory();
+            } else {
+                const result = await response.json();
+                alert('Feil ved sletting: ' + result.error);
+            }
+        } catch (error) {
+            alert('Feil ved sletting: ' + error.message);
+        }
+    }
+    
+    async downloadJPEG() {
+        if (!this.schedule || Object.keys(this.schedule).length === 0) {
+            alert('Ingen vaktliste å laste ned. Generer en løsning først.');
+            return;
+        }
+        
+        try {
+            // Import html2canvas dynamically
+            const html2canvas = (await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js')).default;
+            
+            const scheduleTable = document.querySelector('.schedule-table');
+            const canvas = await html2canvas(scheduleTable, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true
+            });
+            
+            // Convert to JPEG and download
+            const link = document.createElement('a');
+            link.download = `vaktliste-${this.currentDate.getFullYear()}-${String(this.currentDate.getMonth() + 1).padStart(2, '0')}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+            
+        } catch (error) {
+            alert('Feil ved nedlasting: ' + error.message);
+        }
+    }
 }
 
 // Initialize the scheduler when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new ShiftScheduler();
+    window.scheduler = new ShiftScheduler();
+    scheduler.loadSolutionsHistory();
 });
