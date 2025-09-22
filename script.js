@@ -87,6 +87,9 @@ class ShiftScheduler {
             this.schedule[day] = this.assignShiftsForDay(day);
         }
         
+        // Ensure everyone gets at least one shift
+        this.ensureMinimumShifts();
+        
         this.displaySchedule();
         this.displayStatistics();
     }
@@ -152,6 +155,53 @@ class ShiftScheduler {
         });
         
         return daySchedule;
+    }
+    
+    // New method to ensure everyone gets at least one shift per month
+    ensureMinimumShifts() {
+        const allEmployees = [...this.employees.dept1, ...this.employees.dept2];
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        // Check who hasn't worked any shifts yet
+        const employeesWithNoShifts = allEmployees.filter(emp => 
+            emp !== 'Yvonne' && this.shiftCounts[emp].total === 0
+        );
+        
+        if (employeesWithNoShifts.length > 0) {
+            // Find a day where we can assign them
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dayOfWeek = date.getDay();
+                
+                // Skip weekends
+                if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+                
+                const daySchedule = this.schedule[day];
+                if (!daySchedule || daySchedule.isWeekend) continue;
+                
+                // Try to assign shift 5 to someone who hasn't worked
+                const availableForShift5 = employeesWithNoShifts.filter(emp => 
+                    emp !== 'Yvonne' || [2, 3, 4, 5].includes(5)
+                );
+                
+                if (availableForShift5.length > 0) {
+                    const employee = availableForShift5[0];
+                    daySchedule[5] = employee;
+                    this.shiftCounts[employee].total++;
+                    this.shiftCounts[employee].shifts[5]++;
+                    
+                    // Remove from the list
+                    const index = employeesWithNoShifts.indexOf(employee);
+                    if (index > -1) {
+                        employeesWithNoShifts.splice(index, 1);
+                    }
+                    
+                    if (employeesWithNoShifts.length === 0) break;
+                }
+            }
+        }
     }
     
     selectEmployee(availableEmployees, shiftId) {
